@@ -2,8 +2,8 @@ FROM eclipse-temurin:17-jdk
 
 WORKDIR /app
 
-# Mavenをインストール
-RUN apt-get update && apt-get install -y maven && rm -rf /var/lib/apt/lists/*
+# Mavenとnetcatをインストール（ヘルスチェック用）
+RUN apt-get update && apt-get install -y maven netcat-openbsd && rm -rf /var/lib/apt/lists/*
 
 # pom.xmlとソースをコピー
 COPY pom.xml .

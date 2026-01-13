@@ -15,11 +15,20 @@ document.addEventListener('DOMContentLoaded', () => {
 async function initializeApp() {
     try {
         setupEventListeners();
-        await loadFactories();
-        await loadCases();
+        // 並列で読み込み（エラーが発生しても続行）
+        Promise.allSettled([
+            loadFactories(),
+            loadCases()
+        ]).then(results => {
+            results.forEach((result, index) => {
+                if (result.status === 'rejected') {
+                    console.warn(`初期化エラー (${index === 0 ? 'factories' : 'cases'}):`, result.reason);
+                }
+            });
+        });
     } catch (error) {
         console.error('Error initializing app:', error);
-        alert('アプリの初期化に失敗しました。ブラウザのコンソールを確認してください。');
+        // アラートは表示しない（個別のエラーハンドリングで処理）
     }
 }
 
@@ -170,20 +179,40 @@ function handleLogout() {
 // 工場データ読み込み
 async function loadFactories() {
     try {
-        const response = await fetch(`${API_BASE}/factories`);
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10秒タイムアウト
+        
+        const response = await fetch(`${API_BASE}/factories`, {
+            signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+        
         if (!response.ok) {
+            if (response.status === 502 || response.status === 503) {
+                console.warn('バックエンドサーバーが起動中です。しばらく待ってから再読み込みしてください。');
+                // 5秒後にリトライ
+                setTimeout(loadFactories, 5000);
+                return;
+            }
             throw new Error(`HTTP error! status: ${response.status}`);
         }
         factories = await response.json();
         
         const factoryFilter = document.getElementById('factoryFilter');
-        factories.forEach(factory => {
-            const option = document.createElement('option');
-            option.value = factory.id;
-            option.textContent = factory.name;
-            factoryFilter.appendChild(option);
-        });
+        if (factoryFilter) {
+            factories.forEach(factory => {
+                const option = document.createElement('option');
+                option.value = factory.id;
+                option.textContent = factory.name;
+                factoryFilter.appendChild(option);
+            });
+        }
     } catch (error) {
+        if (error.name === 'AbortError') {
+            console.warn('バックエンドサーバーへの接続がタイムアウトしました。再試行します...');
+            setTimeout(loadFactories, 5000);
+            return;
+        }
         console.error('Error loading factories:', error);
         // エラーを表示しない（APIが利用できない場合でもアプリは動作する）
     }
@@ -268,13 +297,37 @@ async function loadCases() {
     if (sortBy) url += `sortBy=${sortBy}&`;
 
     try {
-        const response = await fetch(url);
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10秒タイムアウト
+        
+        const response = await fetch(url, {
+            signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+        
         if (!response.ok) {
+            if (response.status === 502 || response.status === 503) {
+                const casesList = document.getElementById('casesList');
+                if (casesList) {
+                    casesList.innerHTML = '<div class="error">バックエンドサーバーが起動中です。しばらく待ってから再読み込みしてください。</div>';
+                }
+                // 5秒後にリトライ
+                setTimeout(loadCases, 5000);
+                return;
+            }
             throw new Error(`HTTP error! status: ${response.status}`);
         }
         const cases = await response.json();
         displayCases(cases);
     } catch (error) {
+        if (error.name === 'AbortError') {
+            const casesList = document.getElementById('casesList');
+            if (casesList) {
+                casesList.innerHTML = '<div class="error">バックエンドサーバーへの接続がタイムアウトしました。再試行します...</div>';
+            }
+            setTimeout(loadCases, 5000);
+            return;
+        }
         console.error('Error loading cases:', error);
         const casesList = document.getElementById('casesList');
         if (casesList) {
