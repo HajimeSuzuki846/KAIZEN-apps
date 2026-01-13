@@ -13,42 +13,71 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 async function initializeApp() {
-    setupEventListeners();
-    await loadFactories();
-    await loadCases();
+    try {
+        setupEventListeners();
+        await loadFactories();
+        await loadCases();
+    } catch (error) {
+        console.error('Error initializing app:', error);
+        alert('アプリの初期化に失敗しました。ブラウザのコンソールを確認してください。');
+    }
 }
 
 function setupEventListeners() {
-    // ナビゲーション
-    document.getElementById('homeBtn').addEventListener('click', () => showView('home'));
-    document.getElementById('postBtn').addEventListener('click', () => showView('post'));
-    document.getElementById('summaryBtn').addEventListener('click', () => showView('summary'));
-    document.getElementById('loginBtn').addEventListener('click', () => showLoginModal());
-    document.getElementById('backBtn').addEventListener('click', () => showView('home'));
+    try {
+        // ナビゲーション
+        const homeBtn = document.getElementById('homeBtn');
+        const postBtn = document.getElementById('postBtn');
+        const summaryBtn = document.getElementById('summaryBtn');
+        const loginBtn = document.getElementById('loginBtn');
+        const backBtn = document.getElementById('backBtn');
 
-    // モーダル
-    const loginModal = document.getElementById('loginModal');
-    document.querySelector('.close').addEventListener('click', () => {
-        loginModal.classList.remove('show');
-    });
-    window.addEventListener('click', (e) => {
-        if (e.target === loginModal) {
-            loginModal.classList.remove('show');
+        if (homeBtn) homeBtn.addEventListener('click', () => showView('home'));
+        if (postBtn) postBtn.addEventListener('click', () => showView('post'));
+        if (summaryBtn) summaryBtn.addEventListener('click', () => showView('summary'));
+        if (loginBtn) loginBtn.addEventListener('click', () => showLoginModal());
+        if (backBtn) backBtn.addEventListener('click', () => showView('home'));
+
+        // モーダル
+        const loginModal = document.getElementById('loginModal');
+        const closeBtn = document.querySelector('.close');
+        if (closeBtn && loginModal) {
+            closeBtn.addEventListener('click', () => {
+                loginModal.classList.remove('show');
+            });
         }
-    });
+        if (loginModal) {
+            window.addEventListener('click', (e) => {
+                if (e.target === loginModal) {
+                    loginModal.classList.remove('show');
+                }
+            });
+        }
 
-    // フォーム
-    document.getElementById('loginForm').addEventListener('submit', handleLogin);
-    document.getElementById('postForm').addEventListener('submit', handlePost);
-    document.getElementById('commentForm').addEventListener('submit', handleComment);
+        // フォーム
+        const loginForm = document.getElementById('loginForm');
+        const postForm = document.getElementById('postForm');
+        const commentForm = document.getElementById('commentForm');
+        
+        if (loginForm) loginForm.addEventListener('submit', handleLogin);
+        if (postForm) postForm.addEventListener('submit', handlePost);
+        if (commentForm) commentForm.addEventListener('submit', handleComment);
 
-    // フィルター
-    document.getElementById('factoryFilter').addEventListener('change', handleFactoryFilter);
-    document.getElementById('searchInput').addEventListener('input', debounce(loadCases, 300));
-    document.getElementById('sortSelect').addEventListener('change', loadCases);
+        // フィルター
+        const factoryFilter = document.getElementById('factoryFilter');
+        const searchInput = document.getElementById('searchInput');
+        const sortSelect = document.getElementById('sortSelect');
+        
+        if (factoryFilter) factoryFilter.addEventListener('change', handleFactoryFilter);
+        if (searchInput) searchInput.addEventListener('input', debounce(loadCases, 300));
+        if (sortSelect) sortSelect.addEventListener('change', loadCases);
 
-    // 画像プレビュー
-    document.getElementById('postImages').addEventListener('change', handleImagePreview);
+        // 画像プレビュー
+        const postImages = document.getElementById('postImages');
+        if (postImages) postImages.addEventListener('change', handleImagePreview);
+    } catch (error) {
+        console.error('Error setting up event listeners:', error);
+    }
 }
 
 // ビュー切り替え
@@ -142,6 +171,9 @@ function handleLogout() {
 async function loadFactories() {
     try {
         const response = await fetch(`${API_BASE}/factories`);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
         factories = await response.json();
         
         const factoryFilter = document.getElementById('factoryFilter');
@@ -153,6 +185,7 @@ async function loadFactories() {
         });
     } catch (error) {
         console.error('Error loading factories:', error);
+        // エラーを表示しない（APIが利用できない場合でもアプリは動作する）
     }
 }
 
@@ -223,10 +256,10 @@ function handleFactoryFilter() {
 
 // ケース読み込み
 async function loadCases() {
-    const factoryId = document.getElementById('factoryFilter').value;
-    const departmentId = document.getElementById('departmentFilter').value;
-    const keyword = document.getElementById('searchInput').value;
-    const sortBy = document.getElementById('sortSelect').value;
+    const factoryId = document.getElementById('factoryFilter')?.value || '';
+    const departmentId = document.getElementById('departmentFilter')?.value || '';
+    const keyword = document.getElementById('searchInput')?.value || '';
+    const sortBy = document.getElementById('sortSelect')?.value || 'date';
 
     let url = `${API_BASE}/cases?`;
     if (factoryId) url += `factoryId=${factoryId}&`;
@@ -236,11 +269,17 @@ async function loadCases() {
 
     try {
         const response = await fetch(url);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
         const cases = await response.json();
         displayCases(cases);
     } catch (error) {
         console.error('Error loading cases:', error);
-        document.getElementById('casesList').innerHTML = '<div class="error">データの読み込みに失敗しました</div>';
+        const casesList = document.getElementById('casesList');
+        if (casesList) {
+            casesList.innerHTML = '<div class="error">データの読み込みに失敗しました。APIサーバーに接続できません。</div>';
+        }
     }
 }
 
@@ -276,12 +315,17 @@ function displayCases(cases) {
     `).join('');
 }
 
-// ケース詳細表示
-async function showCaseDetail(caseId) {
+// ケース詳細表示（グローバルスコープに公開）
+window.showCaseDetail = async function(caseId) {
     try {
         const userId = currentUser ? currentUser.id : null;
         const url = userId ? `${API_BASE}/cases/${caseId}?userId=${userId}` : `${API_BASE}/cases/${caseId}`;
         const response = await fetch(url);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
         const caseData = await response.json();
 
         const detailDiv = document.getElementById('caseDetail');
@@ -313,11 +357,12 @@ async function showCaseDetail(caseId) {
         window.currentCaseId = caseId;
     } catch (error) {
         console.error('Error loading case detail:', error);
+        alert('詳細の読み込みに失敗しました: ' + error.message);
     }
 }
 
-// いいね切り替え
-async function toggleLike(caseId) {
+// いいね切り替え（グローバルスコープに公開）
+window.toggleLike = async function(caseId) {
     if (!currentUser) {
         showLoginModal();
         return;
@@ -334,10 +379,13 @@ async function toggleLike(caseId) {
 
         if (response.ok) {
             const data = await response.json();
-            showCaseDetail(caseId);
+            window.showCaseDetail(caseId);
+        } else {
+            throw new Error(`HTTP error! status: ${response.status}`);
         }
     } catch (error) {
         console.error('Error toggling like:', error);
+        alert('いいねの処理に失敗しました: ' + error.message);
     }
 }
 
@@ -514,7 +562,8 @@ function debounce(func, wait) {
     };
 }
 
-function openImageModal(imageUrl) {
+// 画像モーダル表示（グローバルスコープに公開）
+window.openImageModal = function(imageUrl) {
     // シンプルな画像拡大表示
     const modal = document.createElement('div');
     modal.className = 'modal show';
