@@ -217,7 +217,7 @@ public class CaseController {
         Comment savedComment = commentRepository.save(comment);
         
         ImprovementCase improvementCase = caseRepository.findById(id).orElseThrow();
-        improvementCase.setCommentCount(commentRepository.countByImprovementCaseId(id));
+        improvementCase.setCommentCount((int) commentRepository.countByImprovementCaseId(id));
         caseRepository.save(improvementCase);
         
         Map<String, Object> response = new HashMap<>();
