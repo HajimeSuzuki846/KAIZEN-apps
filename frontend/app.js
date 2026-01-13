@@ -292,23 +292,23 @@ function displayCases(cases) {
         return;
     }
 
-    casesList.innerHTML = cases.map(case => `
-        <div class="case-card" onclick="showCaseDetail(${case.id})">
-            <img src="${case.images[0] || '/uploads/default.jpg'}" 
-                 alt="${case.title}" 
+    casesList.innerHTML = cases.map(caseItem => `
+        <div class="case-card" onclick="showCaseDetail(${caseItem.id})">
+            <img src="${caseItem.images[0] || '/uploads/default.jpg'}" 
+                 alt="${caseItem.title}" 
                  class="case-image"
                  onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'300\' height=\'200\'%3E%3Crect fill=\'%23f0f0f0\' width=\'300\' height=\'200\'/%3E%3Ctext x=\'50%25\' y=\'50%25\' text-anchor=\'middle\' dy=\'.3em\' fill=\'%23999\'%3E画像なし%3C/text%3E%3C/svg%3E'">
             <div class="case-content">
-                <h3 class="case-title">${escapeHtml(case.title)}</h3>
-                <p class="case-description">${escapeHtml(case.description)}</p>
+                <h3 class="case-title">${escapeHtml(caseItem.title)}</h3>
+                <p class="case-description">${escapeHtml(caseItem.description)}</p>
                 <div class="case-meta">
-                    <span>${case.factoryName} - ${case.departmentName}</span>
-                    <span>${formatDate(case.createdAt)}</span>
+                    <span>${caseItem.factoryName} - ${caseItem.departmentName}</span>
+                    <span>${formatDate(caseItem.createdAt)}</span>
                 </div>
                 <div class="case-stats">
-                    <div class="stat-item">👁️ ${case.viewCount}</div>
-                    <div class="stat-item">❤️ ${case.likeCount}</div>
-                    <div class="stat-item">💬 ${case.commentCount}</div>
+                    <div class="stat-item">👁️ ${caseItem.viewCount}</div>
+                    <div class="stat-item">❤️ ${caseItem.likeCount}</div>
+                    <div class="stat-item">💬 ${caseItem.commentCount}</div>
                 </div>
             </div>
         </div>
