@@ -1,0 +1,28 @@
+# Maven
+backend/target/
+backend/.mvn/
+backend/mvnw
+backend/mvnw.cmd
+
+# IDE
+.idea/
+.vscode/
+*.iml
+*.class
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+*.log
+
+# Uploads
+backend/uploads/
+!backend/uploads/.gitkeep
+
+# Environment
+.env
+.env.local
+

@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>改善事例共有アプリ</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="app">
+        <!-- ヘッダー -->
+        <header class="header">
+            <div class="container">
+                <h1 class="logo">改善事例共有アプリ</h1>
+                <nav class="nav">
+                    <button id="homeBtn" class="nav-btn active">ホーム</button>
+                    <button id="postBtn" class="nav-btn">投稿</button>
+                    <button id="summaryBtn" class="nav-btn">サマリー</button>
+                    <div id="authSection" class="auth-section">
+                        <button id="loginBtn" class="btn btn-primary">ログイン</button>
+                    </div>
+                </nav>
+            </div>
+        </header>
+
+        <!-- ログインモーダル -->
+        <div id="loginModal" class="modal">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <h2>ログイン</h2>
+                <form id="loginForm">
+                    <div class="form-group">
+                        <label>ユーザー名</label>
+                        <input type="text" id="loginUsername" required>
+                    </div>
+                    <div class="form-group">
+                        <label>パスワード</label>
+                        <input type="password" id="loginPassword" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">ログイン</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- メインコンテンツ -->
+        <main class="main">
+            <div class="container">
+                <!-- ホーム画面 -->
+                <div id="homeView" class="view">
+                    <div class="filters">
+                        <select id="factoryFilter" class="filter-select">
+                            <option value="">すべての工場</option>
+                        </select>
+                        <select id="departmentFilter" class="filter-select">
+                            <option value="">すべての係</option>
+                        </select>
+                        <input type="text" id="searchInput" class="search-input" placeholder="キーワード検索...">
+                        <select id="sortSelect" class="filter-select">
+                            <option value="date">投稿日時</option>
+                            <option value="likes">いいね数</option>
+                            <option value="views">閲覧数</option>
+                        </select>
+                    </div>
+                    <div id="casesList" class="cases-list"></div>
+                </div>
+
+                <!-- 投稿画面 -->
+                <div id="postView" class="view hidden">
+                    <h2>改善事例を投稿</h2>
+                    <form id="postForm" class="post-form">
+                        <div class="form-group">
+                            <label>タイトル *</label>
+                            <input type="text" id="postTitle" required>
+                        </div>
+                        <div class="form-group">
+                            <label>説明 *</label>
+                            <textarea id="postDescription" rows="5" required></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>工場 *</label>
+                            <select id="postFactory" required></select>
+                        </div>
+                        <div class="form-group">
+                            <label>係 *</label>
+                            <select id="postDepartment" required></select>
+                        </div>
+                        <div class="form-group">
+                            <label>写真 * (最大10枚)</label>
+                            <input type="file" id="postImages" multiple accept="image/*" required>
+                            <div id="imagePreview" class="image-preview"></div>
+                        </div>
+                        <button type="submit" class="btn btn-primary">投稿</button>
+                    </form>
+                </div>
+
+                <!-- サマリー画面 -->
+                <div id="summaryView" class="view hidden">
+                    <h2>今月のTOP閲覧記事</h2>
+                    <div id="topCasesList" class="cases-list"></div>
+                </div>
+
+                <!-- 詳細画面 -->
+                <div id="detailView" class="view hidden">
+                    <button id="backBtn" class="btn btn-secondary">戻る</button>
+                    <div id="caseDetail" class="case-detail"></div>
+                    <div id="commentsSection" class="comments-section">
+                        <h3>コメント</h3>
+                        <form id="commentForm" class="comment-form">
+                            <textarea id="commentContent" rows="3" placeholder="コメントを入力..." required></textarea>
+                            <button type="submit" class="btn btn-primary">コメント投稿</button>
+                        </form>
+                        <div id="commentsList" class="comments-list"></div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script src="app.js"></script>
+</body>
+</html>
+
